@@ -9,9 +9,8 @@
 #include <stdlib.h>
 #include <p24FV32KA301.h>
 
-#include "testmethods.h"
 #include "testbed.h"
-#include "tests.h"
+
 
 // <editor-fold defaultstate="collapsed" desc="CONFIG bits">
 
@@ -42,7 +41,7 @@ int main(int argc, char** argv) {
     while(1) {
 		
 		while(SWITCH) {
-			Relay_Byte();
+			// actions for switch on.
 		}
 
 		if (millis1 >= 200){
@@ -54,66 +53,16 @@ int main(int argc, char** argv) {
 			c = U1RXREG;
 			switch(c) {
 				case 't' :
-					Run_Tests();
+					Report(T1);
 					break;
 				case 'l' :
 					Send_Command(LOCKcmd);
-					break;
-				case 'u' :
-					Send_Command(UNLOCKcmd);
-					break;
-				case 'f' :
-					if (flame_duty) Set_Flame(0);
-					else Set_Flame(10);
 					break;
 			}
 		}
 	}
     return (EXIT_SUCCESS);
 }
-
-
-void Run_Tests()
-// Runs all the tests
-{
-	Set_Flame(0);
-
-	testcount = 0;
-	Test_Wakeup();			// 1 test
-	//printf("Wakeup Tests: %d\n",testcount);
-
-	Test_Error_Message();	// 3 tests
-	//printf("Err Msg. Tests: %d\n",testcount);
-
-	Test_Report_Settings();		// 3 tests
-	//printf("Report Tests: %d\n",testcount);
-
-	Test_Ignition();		// 8 tests
-	//printf("Ignition Tests: %d\n",testcount);
-
-	Test_Flame_Detect();	// 2 tests
-	//printf("Flame Detect Tests: %d\n",testcount);
-
-	Test_Lit_Operation();
-	//printf("Flame Control Tests: %d\n",testcount);
-
-	Test_Calibration();
-	//printf("Calibration Tests: %d\n",testcount);
-
-	Test_Overshoot();
-	//printf("Overshoot Tests: %d\n",testcount);
-
-	Test_Normalization();
-	//printf("Normalization Tests: %d\n",testcount);
-
-	Test_Enter_Lockout();
-	//printf("Lockout Tests: %d\n",testcount);
-	
-	Set_Flame(0);
-
-	printf("Did %d tests.\n", testcount);
-}
-
 
 
 /***************	INTERRUPT SERVICE ROUTINES    *********************/

@@ -10,6 +10,10 @@
 #include <p24FV32KA301.h>
 #include "testbed.h"
 
+void Initialize(void) {
+
+}
+
 void IO_Init(void) {
 
     LED_TRIS = 0;			// PORTB<15> as output for LED
