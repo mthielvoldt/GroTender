@@ -8,24 +8,34 @@
 ============================================================================*/
 
 #include <p24FV32KA301.h>
-#include "testbed.h"
+#include "grotender.h"
 
 void Initialize(void) {
+
+	enableBits.heatpump = 1;
+	enableBits.light = 0;
+	enableBits.air = 0;
+
+	screenTmr = 0;
+
+	IO_Init();
+	UART1_Init();
+	UART2_Init();
+	TMR1_Init();
+	TMR2_Init();
+	ADC_Init();
 
 }
 
 void IO_Init(void) {
 
     LED_TRIS = 0;			// PORTB<15> as output for LED
-	RESET_TRIS = 0;			// RA4 as output for resetting target.
-	FLAME_TRIS = 0;
+	HEATCOOL_TRIS = 0;			// RA4 as output for resetting target.
+	HEATPUMP_TRIS = 0;
 
 	SWITCH_ANS	= 0;		// digital input on switch
-	SPARK_ANS	= 0;		// digital input on spark
-	PV_ANS		= 0;		// digital input on pv.
 
-	FLAME = 0;				// no flame sim
-	RESET = 0;				// target running
+	LED = 0;				// no flame sim
 }
 
 void UART1_Init(void) {
@@ -66,7 +76,7 @@ void UART1_Init(void) {
 void UART2_Init(void) {
 
 	unsigned char c;
-	U2BRG = 12;					// 38400 baud
+	U2BRG = 51;					// 51 = 9600 12 = 38400 baud
 
     ANSBbits.ANSB1 = 0;         // PORTB<1> (U2RX) digital input.
     TRISBbits.TRISB1 = 1;       // PORTB<1> (U2RX) as input,
@@ -111,7 +121,7 @@ void TMR1_Init(void) {
 					// 2000 tics * .5e-6 s = .001s
 
 	_T1IF = 0;		// overflow flag cleared
-	_T1IE = 1;		// interrupt ensabled
+	_T1IE = 0;		// interrupt disabled
 	_TON = 1;		// turn on timer.  (same as T1CONbits.TON)
 
 }
@@ -119,9 +129,9 @@ void TMR1_Init(void) {
 void TMR2_Init(void) {
 
 	T2CONbits.T32 = 0;			// 16-bit mode (not 32-bit).
-	T2CONbits.TCKPS = 0b01;		// set prescale to 1:8 (8 cycles per tick)
+	T2CONbits.TCKPS = 0b10;		// set prescale to 1:64 (32 us per tick)
 
-	PR2 = 100;					// set period to 100 for simple percent scaling
+	PR2 = 31250;				// 31250 * .000032 s = 1 second
 
 	_T2IF = 0;
 	_T2IE = 1;
