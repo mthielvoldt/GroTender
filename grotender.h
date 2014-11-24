@@ -5,8 +5,8 @@
  * Created on October 4, 2014, 10:42 PM
  */
 
-#ifndef TESTBED_H
-#define	TESTBED_H
+#ifndef GROTENDER_H
+#define	GROTENDER_H
 
 // outputs
 #define LED			LATBbits.LATB15
@@ -58,21 +58,21 @@
 #define REFRESH 100	// 10 hz
 
 /***************   GLOBAL VARIABLES   *******************/
-extern unsigned int millis1, millis2;	// for millisecond timiing using interrupts
-unsigned int temp1, temp2;				// these are temperatures
-unsigned int reading[3], setpoint[3];
-unsigned char screenTmr;
-
-struct {
+extern unsigned int temp1;				// these are temperatures
+extern unsigned int reading[3];
+extern unsigned int setpoint[3];
+extern unsigned char screenTmr;
+struct enableBits_s {
   unsigned char heatpump:1;
   unsigned char light:1;
   unsigned char air:1;
-} enableBits;
+};
+extern struct enableBits_s enableBits;
 
 /**************   FUNCTION PROTOTYPES   *****************/
 void ReadSensors(unsigned int readings[]);
-void TendSystems(const unsigned char enableBits);
-void ReportStatus(const unsigned int readings[]);
+void TendSystems(void);
+void ReportStatus(const unsigned int []);
 
 void ServiceSerial(void);
 void ServiceCounters(void);
@@ -81,8 +81,8 @@ void ProcessCommand(unsigned char command, unsigned char value);
 void SetSetpoint(unsigned char setpoint_i);
 unsigned char ListenForNum(void);
 
-void SampleAD(unsigned char);
+unsigned int SampleAD(unsigned char);
+void SendToDisplay(unsigned char str[]);
 
-
-#endif	/* TESTBED_H */
+#endif	/* GROTENDER_H */
 

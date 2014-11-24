@@ -7,16 +7,11 @@
 
 ============================================================================*/
 
-#include <p24FV32KA301.h>
+#include <xc.h>
+#include "initialize.h"
 #include "grotender.h"
 
 void Initialize(void) {
-
-	enableBits.heatpump = 1;
-	enableBits.light = 0;
-	enableBits.air = 0;
-
-	screenTmr = 0;
 
 	IO_Init();
 	UART1_Init();
@@ -142,7 +137,7 @@ void ADC_Init(void) {
 
 	// port pins as analog inputs (all are by default)
 	//PV_ANS = 1;
-	CHG_ANS = 1;
+	TEMP_ANS = 1;
 
 	// Configure sample clock source and conversion trigger mode.
 	AD1CON1bits.ADSIDL = 1;		// No operation in Idle mode

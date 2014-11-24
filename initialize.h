@@ -8,6 +8,8 @@
 #ifndef INITIALIZE_H
 #define	INITIALIZE_H
 
+void Initialize(void);
+
 void IO_Init(void);
 // Sets pins as either input or output and as either digital or analog.
 

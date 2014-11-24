@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <p24FV32KA301.h>
 #include "grotender.h"
+#include "serial.h"
+#include "initialize.h"
 
 
 // <editor-fold defaultstate="collapsed" desc="CONFIG bits">
@@ -24,7 +26,11 @@ _FICD		( ICS_PGx2 ); // Background debugger disabled, PGEC2/PGED2 used to progra
 // </editor-fold>
 
 //#define U1RX_INTERRUP
-
+unsigned int temp1 = 0;			// these are temperatures
+unsigned int reading[3] = {0,0,0};
+unsigned int setpoint[3] = {0,0,0};
+unsigned char screenTmr	= 0;
+struct enableBits_s enableBits;
 
 int main(int argc, char** argv) {
 
@@ -39,6 +45,7 @@ int main(int argc, char** argv) {
 	}
     return (EXIT_SUCCESS);
 }
+
 void ReadSensors(unsigned int reading[]){
 	unsigned long v1;
 	v1 = SampleAD(TEMP_CHAN);
@@ -84,7 +91,7 @@ void TendSystems(void) {
 		}
 	}
 
-	if (enableBits.humidifier)
+	if (enableBits.air)
 	{
 		if (DRYAIR) {		// drying
 			if (reading[HUMIDITY] < (setpoint[HUMIDITY]-HYST))
@@ -103,12 +110,14 @@ void TendSystems(void) {
 	}
 }
 
-void ReportStatus() {
+void ReportStatus(const unsigned int readings[]) {
+	static char str[32];
 	if (screenTmr < REFRESH)
 		return;
 
 	screenTmr = 0;
-	fprintf()
+	sprintf(str, "Hello, World\n");
+	U2Print(str,13);
 
 }
 
@@ -126,10 +135,10 @@ void ServiceSerial(void) {
 		c = U1RXREG;
 		switch(c) {
 			case 't' :
-				printf("Temperature: %d\n",readings(TEMP));
+				printf("Temperature: %d\n",reading[TEMP]);
 				break;
 			case 'h' :
-				printf("Humidity: %d\n",readings(HUMIDITY));
+				printf("Humidity: %d\n",reading[HUMIDITY]);
 				break;
 			case 'T' :
 				SetSetpoint(TEMP);
@@ -145,11 +154,11 @@ void ServiceSerial(void) {
 void SetSetpoint(unsigned char setpoint_i){
 	unsigned char c = ListenForNum();
 	if(c) 
-		setpoint(setpoint_i) = c;
+		setpoint[setpoint_i] = c;
 }
 
 unsigned char ListenForNum(void) {
-	unsigned char str[10];
+	char str[10];
 	if(fgets(str, 10, stdin))
 	{
 		return (unsigned char) atoi(str);
@@ -159,7 +168,7 @@ unsigned char ListenForNum(void) {
 	
 }
 
-unsigned int SampleAD(unsigned int channel)
+unsigned int SampleAD(unsigned char channel)
 {
 
 	unsigned int ADCValue;
