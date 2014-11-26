@@ -13,12 +13,40 @@
 
 void Initialize(void) {
 
+	//int i;
 	IO_Init();
 	UART1_Init();
-	UART2_Init();
+	UART2_Init();	
 	TMR1_Init();
 	TMR2_Init();
 	ADC_Init();
+
+	enableBits.heatpump = 1;
+
+	minutes = 0;
+	millis2 = 0;
+	setpoint[TEMP] = progT[0];
+	setpoint[HUMIDITY] = progH[0];
+	LIGHT = (progL[0] > 0);
+	
+	/*
+	if (NVRead(0) == 0x1234) 
+	{
+		unsigned int array[6] = {1, 217, 95, 1, 0, 217, 95, 1}; //initial program
+		for (i=0; i < 6 ; i++)
+		{
+		NVWrite(array[i], i);
+		}
+	}
+
+	for (i=0; i < 10 ; i++)
+	{
+		progTime[i] = NVRead(i*4);
+		progT[i] = NVRead(i*4 + 1);
+		progH[i] = NVRead(i*4 + 2);
+		progL[i] = NVRead(i*4 + 3);
+	}
+	 * */
 
 }
 
@@ -27,10 +55,16 @@ void IO_Init(void) {
     LED_TRIS = 0;			// PORTB<15> as output for LED
 	HEATCOOL_TRIS = 0;			// RA4 as output for resetting target.
 	HEATPUMP_TRIS = 0;
+	LIGHT_TRIS = 0;
+	WETAIR_TRIS = 0;
+	DRYAIR_TRIS = 0;
 
 	SWITCH_ANS	= 0;		// digital input on switch
 
-	LED = 0;				// no flame sim
+	LED = 0;
+	LIGHT = 0;
+	DRYAIR = 0;
+	WETAIR = 1;
 }
 
 void UART1_Init(void) {
@@ -62,7 +96,7 @@ void UART1_Init(void) {
 	U1STAbits.ADDEN = 0;		// address detect mode is disabled
 
 	IFS0bits.U1RXIF = 0;		// clear interrupt flag of rx
-	IEC0bits.U1RXIE = 1;		// enable rx recieved data interrupt
+	IEC0bits.U1RXIE = 0;		// disable rx recieved data interrupt
 
 	IFS0bits.U1TXIF = 0;		// clear interrupt flag of rx
 	IEC0bits.U1TXIE = 0;		// disable rx recieved data interrupt
@@ -98,7 +132,7 @@ void UART2_Init(void) {
 	U2STAbits.ADDEN = 0;		// address detect mode is disabled
 
 	//IFS1bits.U2RXIF = 0;		// clear interrupt flag of rx
-	IEC1bits.U2RXIE = 1;		// disnable rx recieved data interrupt
+	IEC1bits.U2RXIE = 0;		// disable rx recieved data interrupt
 
 	IFS1bits.U2TXIF = 0;		// clear interrupt flag of rx
 	IEC1bits.U2TXIE = 0;		// disable rx recieved data interrupt
@@ -116,7 +150,7 @@ void TMR1_Init(void) {
 					// 2000 tics * .5e-6 s = .001s
 
 	_T1IF = 0;		// overflow flag cleared
-	_T1IE = 0;		// interrupt disabled
+	_T1IE = 1;		// interrupt disabled
 	_TON = 1;		// turn on timer.  (same as T1CONbits.TON)
 
 }
@@ -129,7 +163,7 @@ void TMR2_Init(void) {
 	PR2 = 31250;				// 31250 * .000032 s = 1 second
 
 	_T2IF = 0;
-	_T2IE = 1;
+	_T2IE = 0;
 	//T2CONbits.TON = 1;		// turned on by Set_Flame(duty)
 }
 
@@ -145,13 +179,14 @@ void ADC_Init(void) {
 	AD1CON1bits.MODE12 = 0;		// 10-bit format (not 12).
 	AD1CON1bits.FORM = 0b00;	// Unsigned decimal format (max 1023 in 10-bit mode)
 
-	AD1CON2 = 0;	// Configure A/D voltage reference and buffer fill modes.
+	AD1CON2bits.PVCFG = 0b10;	// 0b00 = Vdd //  0b10 = positive reverence = 2*internal VBG (2.048V nominally)
+					//Configure A/D voltage reference and buffer fill modes.
 					// Vr+ and Vr- from AVdd and AVss(PVCFG<1:0>=00, NVCFG=0),
 					// Inputs are not scanned,
 					// Interrupt after every sample
 
-	AD1CON3bits.ADCS = 0;	// 1*Tcy = Tad (.5us)
-	AD1CON3bits.SAMC = 20;	// Auto-sample time = 20Tad = 10us (max here is 31 Tad)
+	AD1CON3bits.ADCS = 1;	// 2*Tcy = Tad (1us)
+	AD1CON3bits.SAMC = 20;	// Auto-sample time = 20Tad = 20us (max here is 31 Tad)
 							// 5kohm * 32pF * ln(2^13) = 1.44 us
 							// conversion (after sampling) takes (N-bits + 2) * Tad
 

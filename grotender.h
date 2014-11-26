@@ -24,16 +24,20 @@
 #define HEATPUMP_LATCH	LATB
 #define HEATPUMP_PIN	_LATB_LATB9_MASK
 
-#define DRYAIR		LATBbits.LATB9
-#define DRYAIR_TRIS	TRISBbits.TRISB9
+#define DRYAIR		LATBbits.LATB8
+#define DRYAIR_TRIS	TRISBbits.TRISB8
 #define DRYAIR_LATCH	LATB
-#define DRYAIR_PIN	_LATB_LATB9_MASK
+#define DRYAIR_PIN	_LATB_LATB8_MASK
 
-#define WETAIR		LATBbits.LATB9
-#define WETAIR_TRIS	TRISBbits.TRISB9
+#define WETAIR		LATBbits.LATB13
+#define WETAIR_TRIS	TRISBbits.TRISB13
 #define WETAIR_LATCH	LATB
-#define WETAIR_PIN	_LATB_LATB9_MASK
+#define WETAIR_PIN	_LATB_LATB13_MASK
 
+#define LIGHT		LATBbits.LATB12
+#define LIGHT_TRIS	TRISBbits.TRISB12
+#define LIGHT_LATCH	LATB
+#define LIGHT_PIN	_LATB_LATB12_MASK
 
 // digital general purpose inputs (doesn't include UARTs)
 #define SWITCH		PORTBbits.RB14
@@ -53,15 +57,22 @@
 
 /****************  USEFUL CONSTANTS  *******************/
 
-#define HYST 5		// half a degree
-#define HYST2 10	// hysteresis * 2;
-#define REFRESH 100	// 10 hz
+#define HYST 8		// half a degree
+#define HYST2 16	// hysteresis * 2;
+#define REFRESH 1000	// 10 hz
+#define AD_BUFFER_SIZE 8
 
 /***************   GLOBAL VARIABLES   *******************/
-extern unsigned int temp1;				// these are temperatures
+
+extern unsigned int msTic, displayTmr;
+extern unsigned int millis, millis2, minutes, ledTmr;				// these are temperatures
 extern unsigned int reading[3];
 extern unsigned int setpoint[3];
-extern unsigned char screenTmr;
+extern unsigned int progTime[4];
+extern unsigned int progT[4];
+extern unsigned int progH[4];
+extern unsigned char progL[4];
+extern unsigned char progIndex;
 struct enableBits_s {
   unsigned char heatpump:1;
   unsigned char light:1;
@@ -74,15 +85,19 @@ void ReadSensors(unsigned int readings[]);
 void TendSystems(void);
 void ReportStatus(const unsigned int []);
 
+void ServiceSeq(void);
 void ServiceSerial(void);
-void ServiceCounters(void);
+void ServiceTimers(void);
 void ProcessCommand(unsigned char command, unsigned char value);
 
 void SetSetpoint(unsigned char setpoint_i);
-unsigned char ListenForNum(void);
+unsigned int ListenForNum(void);
 
 unsigned int SampleAD(unsigned char);
-void SendToDisplay(unsigned char str[]);
+void DelayMs(unsigned int);
+
+void NVWrite(unsigned int , unsigned char );
+unsigned int NVRead(unsigned char );
 
 #endif	/* GROTENDER_H */
 
